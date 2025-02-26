@@ -4,7 +4,10 @@ import org.example.post2trip.domain.kakaoMap.dto.KakaoAddressToCode;
 import org.example.post2trip.domain.kakaoMap.dto.KakaoApiResponseDto;
 import org.example.post2trip.domain.kakaoMap.dto.KakaoKeywordResponseDto;
 import org.example.post2trip.domain.kakaoMap.dto.KakaoTransCoordResponseDto;
+import org.example.post2trip.domain.kakaoMap.dto.image.KakaoImageDto;
+import org.example.post2trip.domain.place.dto.response.PlaceReponseDto;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -20,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class KakaoAddressSearchService {
 
     private final RestTemplate restTemplate;
+    private final KakakoSearchService kakaoSearchService;
 
     @Value("${KAKAO.API.KEY}")
     private String apiKey;
@@ -113,7 +117,7 @@ public class KakaoAddressSearchService {
                         + "?query=" + correctedKeyword
                         + location
                         + "&page=" + page
-                        + "&size=" + size
+                        + "&size=" + 1
                         + "&analyze_type=similar";
 
                 return callKakaoApi(correctedUrl, KakaoKeywordResponseDto.class);
@@ -158,4 +162,49 @@ public class KakaoAddressSearchService {
 
         return callKakaoApi(url, KakaoTransCoordResponseDto.class);
     }
+
+
+    public PlaceReponseDto searchByKeyword(String query, double x, double y, int radius) {
+        String location = (x != -9999) ? "&x=" + x + "&y=" + y + "&radius=" + radius : "";
+
+        String url = baseUrl
+                + "/search/keyword.json"
+                + "?query=" + query
+                + location
+                + "&page=" + 1
+                + "&size=" + 1
+                + "&analyze_type=similar";
+
+        // 1차 검색 실행
+        KakaoKeywordResponseDto response = callKakaoApi(url, KakaoKeywordResponseDto.class);
+
+        // 🔹 검색 결과가 없을 경우 빈 객체 반환
+        if (response == null || response.getDocuments().isEmpty()) {
+            return PlaceReponseDto.builder()
+                    .name("")
+                    .basicAddress("")
+                    .latitude("")
+                    .longitude("")
+                    .isUsed(false)
+                    .imageUrl("")
+                    .build();
+        }
+
+        // 🔹 이미지 검색 수행
+        KakaoImageDto image = kakaoSearchService.searchByKeyword(response.getDocuments().get(0).getPlaceName());
+        String imageUrl = (image.getDocuments().isEmpty()) ? "" : image.getDocuments().get(0).getImageUrl();
+
+        // 🔹 검색 결과 반환
+        return PlaceReponseDto.builder()
+                .name(response.getDocuments().get(0).getPlaceName())
+                .basicAddress(response.getDocuments().get(0).getAddressName())
+                .latitude(response.getDocuments().get(0).getY())
+                .longitude(response.getDocuments().get(0).getX())
+                .isUsed(false)
+                .imageUrl(imageUrl)
+                .build();
+    }
+
+
+
 }

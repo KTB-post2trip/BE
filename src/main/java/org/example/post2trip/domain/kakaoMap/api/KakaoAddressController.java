@@ -1,10 +1,10 @@
 package org.example.post2trip.domain.kakaoMap.api;
 
-import io.swagger.v3.oas.annotations.Hidden;
 import org.example.post2trip.domain.kakaoMap.application.KakaoAddressSearchService;
 import org.example.post2trip.domain.kakaoMap.dto.KakaoApiResponseDto;
 import org.example.post2trip.domain.kakaoMap.dto.KakaoKeywordResponseDto;
 import org.example.post2trip.domain.kakaoMap.dto.KakaoTransCoordResponseDto;
+import org.example.post2trip.domain.place.dto.response.PlaceReponseDto;
 import org.example.post2trip.global.common.ResponseModel;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -75,5 +75,17 @@ public class KakaoAddressController {
         KakaoTransCoordResponseDto kakaoTransCoordResponseDto = kakaoAddressSearchService.transCoord(x, y, inputCoord,
                 outputCoord);
         return ResponseModel.success(kakaoTransCoordResponseDto);
+    }
+
+
+    @GetMapping("/search/place")
+    public ResponseModel<?> searchPlace(
+            @RequestParam(required = false) String query,
+            @RequestParam(defaultValue = "-9999.0") double x,
+            @RequestParam(defaultValue = "-9999.0") double y,
+            @RequestParam(defaultValue = "20000") int radius
+    ) {
+        PlaceReponseDto dto = kakaoAddressSearchService.searchByKeyword(query, x, y, radius);
+        return ResponseModel.success(dto);
     }
 }
