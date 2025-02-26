@@ -34,7 +34,9 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            export TAG=${{ github.sha }}
             cd /home/ubuntu/link2trip/BE
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/link2trip .
+            docker-compose pull app
             docker-compose up -d app
-            docker image prune -f 
+            docker image prune -f
