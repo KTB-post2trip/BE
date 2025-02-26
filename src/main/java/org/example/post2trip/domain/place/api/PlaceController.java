@@ -4,8 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.post2trip.domain.place.application.PlaceService;
 import org.example.post2trip.domain.place.domain.Place;
-import org.example.post2trip.domain.place.dto.request.GoToTripDto;
-import org.example.post2trip.domain.place.dto.request.PlaceRequestDto;
+import org.example.post2trip.domain.place.dto.response.PlaceReponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +36,7 @@ public class PlaceController {
 
     // 장소 등록
     @PostMapping("")
-    public ResponseEntity<Place> createPlace(@RequestBody PlaceRequestDto place) {
+    public ResponseEntity<Place> createPlace(@RequestBody PlaceReponseDto place) {
         placeService.createPlace(place);
         return ResponseEntity.ok().build();
     }
