@@ -35,7 +35,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ubuntu/BE
-            docker-compose down
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/link2trip:${{ github.sha }}
             sed -i 's|image: .*|image: ${{ secrets.DOCKERHUB_USERNAME }}/link2trip:${{ github.sha }}|' docker-compose.yml
-            docker-compose up -d
+            docker-compose up -d be-app
+            docker image prune -f  # 불필요한 이미지 삭제
