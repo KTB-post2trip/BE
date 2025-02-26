@@ -40,3 +40,7 @@ springdoc:
     doc-expansion: none
   paths-to-match:
     - /api/**
+
+ai:
+  server:
+    url: ${AI_SERVER_URL}
