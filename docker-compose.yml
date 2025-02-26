@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   app:
-    image: younghak9905/link2trip:7c0d442f47d6fbb45247c4e51dc73a927c486009
+    image: younghak9905/link2trip:latest
     ports:
       - "8080:8080"
     environment:
