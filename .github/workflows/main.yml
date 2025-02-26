@@ -29,6 +29,7 @@ jobs:
             --build-arg KAKAO_API_KEY=${{ secrets.KAKAO_API_KEY }} \
             --build-arg KAKAO_REDIRECT_URL=${{ secrets.KAKAO_REDIRECT_URL }} \
             --build-arg AI_SERVER_URL=${{ secrets.AI_SERVER_URL }} \
+            --build-arg SWAGGER_URL=${{ secrets.SWAGGER_URL }} \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/link2trip:${{ github.sha }} . --push
 
   deploy:
