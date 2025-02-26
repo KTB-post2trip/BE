@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.post2trip.domain.place.application.PlaceService;
 import org.example.post2trip.domain.place.domain.Place;
+import org.example.post2trip.domain.place.dto.request.GoToTripDto;
 import org.example.post2trip.domain.place.dto.request.PlaceRequestDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class PlaceController {
 
     // 모든 장소 조회
     @GetMapping("")
-    public ResponseEntity<List<Place>> getAllPlaces() {
+    public ResponseEntity<List<Place>> getAllPlaces(@RequestParam String url,@RequestParam String placeName) {
         return ResponseEntity.ok(placeService.getAllPlaces());
     }
 
