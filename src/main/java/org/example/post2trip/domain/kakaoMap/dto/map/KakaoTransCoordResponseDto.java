@@ -1,4 +1,4 @@
-package org.example.post2trip.domain.kakaoMap.dto;
+package org.example.post2trip.domain.kakaoMap.dto.map;
 
 import java.util.List;
 

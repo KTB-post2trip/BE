@@ -1,13 +1,12 @@
 package org.example.post2trip.domain.kakaoMap.application;
 
-import org.example.post2trip.domain.kakaoMap.dto.KakaoAddressToCode;
-import org.example.post2trip.domain.kakaoMap.dto.KakaoApiResponseDto;
-import org.example.post2trip.domain.kakaoMap.dto.KakaoKeywordResponseDto;
-import org.example.post2trip.domain.kakaoMap.dto.KakaoTransCoordResponseDto;
+import org.example.post2trip.domain.kakaoMap.dto.map.KakaoAddressToCode;
+import org.example.post2trip.domain.kakaoMap.dto.map.KakaoApiResponseDto;
+import org.example.post2trip.domain.kakaoMap.dto.map.KakaoKeywordResponseDto;
+import org.example.post2trip.domain.kakaoMap.dto.map.KakaoTransCoordResponseDto;
 import org.example.post2trip.domain.kakaoMap.dto.image.KakaoImageDto;
 import org.example.post2trip.domain.place.dto.response.PlaceReponseDto;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;

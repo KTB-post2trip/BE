@@ -1,9 +1,9 @@
 package org.example.post2trip.domain.kakaoMap.api;
 
 import org.example.post2trip.domain.kakaoMap.application.KakaoAddressSearchService;
-import org.example.post2trip.domain.kakaoMap.dto.KakaoApiResponseDto;
-import org.example.post2trip.domain.kakaoMap.dto.KakaoKeywordResponseDto;
-import org.example.post2trip.domain.kakaoMap.dto.KakaoTransCoordResponseDto;
+import org.example.post2trip.domain.kakaoMap.dto.map.KakaoApiResponseDto;
+import org.example.post2trip.domain.kakaoMap.dto.map.KakaoKeywordResponseDto;
+import org.example.post2trip.domain.kakaoMap.dto.map.KakaoTransCoordResponseDto;
 import org.example.post2trip.domain.place.dto.response.PlaceReponseDto;
 import org.example.post2trip.global.common.ResponseModel;
 import org.springframework.web.bind.annotation.GetMapping;

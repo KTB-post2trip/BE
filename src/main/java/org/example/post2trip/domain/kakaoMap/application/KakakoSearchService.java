@@ -1,7 +1,6 @@
 package org.example.post2trip.domain.kakaoMap.application;
 
 import lombok.RequiredArgsConstructor;
-import org.example.post2trip.domain.kakaoMap.dto.KakaoKeywordResponseDto;
 import org.example.post2trip.domain.kakaoMap.dto.image.KakaoImageDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;

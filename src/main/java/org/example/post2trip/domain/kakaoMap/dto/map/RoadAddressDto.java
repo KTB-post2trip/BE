@@ -1,4 +1,5 @@
-package org.example.post2trip.domain.kakaoMap.dto;
+package org.example.post2trip.domain.kakaoMap.dto.map;
+
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -7,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AddressDto {
+public class RoadAddressDto {
     @JsonProperty("address_name")
     private String addressName;
 
@@ -20,17 +21,23 @@ public class AddressDto {
     @JsonProperty("region_3depth_name")
     private String region3DepthName;
 
-    @JsonProperty("mountain_yn")
-    private String mountainYn;
+    @JsonProperty("road_name")
+    private String roadName;
 
-    @JsonProperty("main_address_no")
-    private String mainAddressNo;
+    @JsonProperty("underground_yn")
+    private String undergroundYn;
 
-    @JsonProperty("sub_address_no")
-    private String subAddressNo;
+    @JsonProperty("main_building_no")
+    private String mainBuildingNo;
 
-    @JsonProperty("zip_code")
-    private String zipCode;
+    @JsonProperty("sub_building_no")
+    private String subBuildingNo;
+
+    @JsonProperty("building_name")
+    private String buildingName;
+
+    @JsonProperty("zone_no")
+    private String zoneNo;
 
     @JsonProperty("x")
     private String x;

@@ -3,7 +3,6 @@ package org.example.post2trip.domain.kakaoMap.dto.image;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
-import org.example.post2trip.domain.kakaoMap.dto.KakaoAddressToCode;
 
 import java.util.List;
 
