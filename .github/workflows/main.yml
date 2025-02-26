@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ "TC-17" ]
+    branches: [ "develop" ]
 
 jobs:
   build-and-push:
@@ -34,8 +34,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ubuntu/BE
-            sudo git pull origin TC-17
+            cd /home/ubuntu/link2trip/BE
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/link2trip .
             docker-compose up -d app
-            docker image prune -f  # 불필요한 이미지 삭제
+            docker image prune -f 
