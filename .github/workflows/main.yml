@@ -17,11 +17,19 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Log in to DockerHub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
       - name: Build and push Docker image
         run: |
-          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/link2trip:${{ github.sha }} .
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/link2trip:${{ github.sha }}
+          docker buildx build \
+            --build-arg DB_URL=${{ secrets.DB_URL }} \
+            --build-arg DB_USERNAME=${{ secrets.DB_USERNAME }} \
+            --build-arg DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            --build-arg KAKAO_API_KEY=${{ secrets.KAKAO_API_KEY }} \
+            --build-arg KAKAO_REDIRECT_URL=${{ secrets.KAKAO_REDIRECT_URL }} \
+            --build-arg AI_SERVER_URL=${{ secrets.AI_SERVER_URL }} \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/link2trip:${{ github.sha }} . --push
 
   deploy:
     needs: build-and-push
