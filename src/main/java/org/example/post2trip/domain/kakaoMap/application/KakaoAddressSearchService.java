@@ -86,17 +86,8 @@ public class KakaoAddressSearchService {
         return callKakaoApi(url, KakaoApiResponseDto.class);
     }
 
-    public KakaoKeywordResponseDto searchByKeywordWithRadius(String query, double x, double y, int radius, int page,
-                                                             int size) {
-        String location;
-        if (x != -9999) {
-            location = ""
-                    + "&x=" + x
-                    + "&y=" + y
-                    + "&radius=" + radius;
-        } else {
-            location = "";
-        }
+    public KakaoKeywordResponseDto searchByKeywordWithRadius(String query, double x, double y, int radius, int page, int size) {
+        String location = (x != -9999) ? "&x=" + x + "&y=" + y + "&radius=" + radius : "";
 
         String url = baseUrl
                 + "/search/keyword.json"
@@ -105,7 +96,31 @@ public class KakaoAddressSearchService {
                 + "&page=" + page
                 + "&size=" + size
                 + "&analyze_type=similar";
-        return callKakaoApi(url, KakaoKeywordResponseDto.class);
+
+        // 1차 검색 실행
+        KakaoKeywordResponseDto response = callKakaoApi(url, KakaoKeywordResponseDto.class);
+        System.out.println(response.getMeta().getSameName().getKeyword());
+        // 결과가 없을 경우 자동 교정 키워드 확인
+        if (response.getDocuments().isEmpty() && response.getMeta().getSameName() != null) {
+            String correctedKeyword = response.getMeta().getSameName().getKeyword();
+
+            if (correctedKeyword != null && !correctedKeyword.isEmpty() && !correctedKeyword.equals(query)) {
+
+
+                // 교정된 키워드로 재검색 실행
+                String correctedUrl = baseUrl
+                        + "/search/keyword.json"
+                        + "?query=" + correctedKeyword
+                        + location
+                        + "&page=" + page
+                        + "&size=" + size
+                        + "&analyze_type=similar";
+
+                return callKakaoApi(correctedUrl, KakaoKeywordResponseDto.class);
+            }
+        }
+
+        return response;
     }
 
     public KakaoKeywordResponseDto searchByKeyword(String query, int page, int size) {
