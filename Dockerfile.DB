@@ -1,0 +1,22 @@
+# MySQL 공식 이미지를 베이스로 사용
+FROM mysql:latest
+
+# .env 파일에서 전달받을 빌드 인자
+ARG DB_PASSWORD
+ARG DB_NAME
+ARG DB_USERNAME
+
+# 환경 변수로 설정
+ENV MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+ENV MYSQL_DATABASE=${DB_NAME}
+ENV MYSQL_USER=${DB_USERNAME}
+ENV MYSQL_PASSWORD=${DB_PASSWORD}
+
+# MySQL 기본 포트 노출
+EXPOSE 3306
+
+# 데이터 지속성을 위한 볼륨 선언
+VOLUME ["/var/lib/mysql"]
+
+# 기본 명령어: MySQL 서버 실행
+CMD ["mysqld"]
