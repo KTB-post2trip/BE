@@ -1,8 +1,7 @@
 version: '3.8'
 services:
-  be-app:
-    image: ${DOCKERHUB_USERNAME}/link2trip:latest
-    container_name: be-app
+  app:
+    build: .
     ports:
       - "8080:8080"
     depends_on:
