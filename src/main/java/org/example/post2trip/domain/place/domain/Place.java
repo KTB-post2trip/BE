@@ -18,7 +18,7 @@ public class Place {
     private Long id;
 
     @Column(name = "s_id")
-    private String sId;
+    private Long sid;
 
     private String name;
 
@@ -32,6 +32,8 @@ public class Place {
     private String longitude;
 
     private boolean isUsed;
+
+    private String url;
 
     private String imageUrl;
 

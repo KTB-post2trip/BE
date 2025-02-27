@@ -201,6 +201,7 @@ public class KakaoAddressSearchService {
                 .longitude(response.getDocuments().get(0).getX())
                 .isUsed(false)
                 .imageUrl(imageUrl)
+                .url(response.getDocuments().get(0).getPlaceUrl())
                 .build();
     }
 
