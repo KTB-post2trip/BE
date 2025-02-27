@@ -81,4 +81,7 @@ public class PlaceService {
         placeRepository.deleteById(id);
     }
 
+    public List<Place> getPlaceBysId(Long sid) {
+        return placeRepository.findBySid(sid);
+    }
 }

@@ -1,5 +1,6 @@
 package org.example.post2trip.domain.place.api;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.post2trip.domain.place.application.AIService;
@@ -43,14 +44,22 @@ public class PlaceController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/sid/{sid}")
+    public ResponseEntity<List<Place>> getPlaceBysId(@PathVariable Long sid) {
+        return ResponseEntity.ok(placeService.getPlaceBysId(sid));
+
+    }
+
     // 장소 등록
     @PostMapping("")
+    @Hidden
     public ResponseEntity<Place> createPlace(@RequestBody PlaceDto place) {
         placeService.createPlace(place);
         return ResponseEntity.ok().build();
     }
 
     // 장소 수정
+
     @PutMapping("")
     public ResponseEntity<Place> updatePlace(@RequestBody IdListRequestDto request) {
         placeService.updatePlaces(request.getIds());
