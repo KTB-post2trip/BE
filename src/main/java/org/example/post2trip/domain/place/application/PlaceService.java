@@ -23,6 +23,11 @@ public class PlaceService {
         return placeRepository.findAll();
     }
 
+    public List<Place> getAllPlaces(String url, String placeName) {
+
+
+        return placeRepository.findAll();
+    }
     public Optional<Place> getPlaceById(Long id) {
         return placeRepository.findById(id);
     }
