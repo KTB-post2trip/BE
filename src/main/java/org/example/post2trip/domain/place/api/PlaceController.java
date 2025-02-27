@@ -78,7 +78,7 @@ public class PlaceController {
     }
 
     @GetMapping("")
-    public CompletableFuture<ResponseEntity<List<org.example.post2trip.domain.place.dto.response.AI.PlaceDto>>>processUrl(
+    public CompletableFuture<ResponseEntity<List<Place>>>processUrl(
             @RequestParam String url,
             @RequestParam(defaultValue = "강원") String placeName) {
         return processUrlService.processUrlAsync(url,placeName)

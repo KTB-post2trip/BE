@@ -19,8 +19,13 @@ import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -64,26 +69,20 @@ public class AIService {
             System.out.println("🔹 AI 서버로 요청 보내기: " + fullUrl);
 
             // 🔹 AI 서버로 GET 요청 보내기 (쿼리 파라미터 사용)
-            ResponseEntity<String> responseEntity = restTemplate.exchange(
-                    fullUrl, HttpMethod.GET, null, String.class
+            ResponseEntity<ProcessUrlResponseDto[]> responseEntity = restTemplate.exchange(
+                    aiServerUrl + "/process-url?url=" + url,
+                    HttpMethod.GET,
+                    null,
+                    ProcessUrlResponseDto[].class
             );
 
             // 🔹 응답 상태 코드 출력
             System.out.println("🔹 AI 서버 응답 코드: " + responseEntity.getStatusCode());
 
             // 🔹 응답 원본 JSON 출력
-            String jsonResponse = responseEntity.getBody();
-            System.out.println("🔹 AI 서버 응답 원본 (JSON): " + jsonResponse);
-
-            // 🔹 JSON을 ProcessUrlResponseDto[]로 변환
-            ProcessUrlResponseDto[] responseArray = objectMapper.readValue(
-                    jsonResponse, ProcessUrlResponseDto[].class
-            );
-
-            // 🔹 변환된 응답 출력
-            System.out.println("🔹 변환된 응답 데이터: " + Arrays.toString(responseArray));
-
-            responseList = (responseArray != null) ? Arrays.asList(responseArray) : List.of();
+            // 응답이 null이면 빈 리스트 반환
+            responseList = (responseEntity.getBody() != null) ?
+                    Arrays.asList(responseEntity.getBody()) : List.of();
         } catch (Exception e) {
             System.err.println("❌ AI 서버 요청 실패! 예외 발생: " + e.getMessage());
             e.printStackTrace();
@@ -96,9 +95,9 @@ public class AIService {
     private String generateUniqueSid() {
         return UUID.randomUUID().toString(); // ✅ UUID 문자열 반환
     }
+
     @Async
-    @Transactional
-    public CompletableFuture<List<PlaceDto>> processUrlAsync(String url, String placeName) {
+    public CompletableFuture<List<Place>> processUrlAsync(String url, String placeName) {
         // AI 서버 엔드포인트
         List<ProcessUrlResponseDto> responseList;
 
@@ -130,9 +129,9 @@ public class AIService {
         }
 
         // ✅ AI 서버 응답이 없으면 테스트 데이터 삽입
-      //  if (responseList.isEmpty()) {
-      //     responseList = getMockData();
-      //  }
+         if (responseList.isEmpty()) {
+            responseList = getMockData();
+          }
 
         // 🔹 placeName에 따른 x, y 값 적용
         double[] coordinates = PLACE_COORDINATES.getOrDefault(placeName, PLACE_COORDINATES.get("기본값"));
@@ -141,8 +140,6 @@ public class AIService {
 
         // 🔹 실행할 때마다 고유한 `sid` 생성
         String sid = generateUniqueSid();
-
-        // 🔹 `sid`가 이미 존재하는지 확인
 
 
         List<Place> placeList = responseList.stream()
@@ -157,29 +154,15 @@ public class AIService {
             return CompletableFuture.completedFuture(List.of());
         }
         // 🔹 저장할 데이터 확인
-        placeList.forEach(place -> System.out.println("💾 저장 대상 Place: " + place.getName()+" "+place.getSid()));
+
 
         try {
             List<Place> savedPlaces = placeRepository.saveAll(placeList);
             placeRepository.flush(); // 🔹 강제 반영
 
 
-            List<PlaceDto> placeDtoList = savedPlaces.stream()
-                    .map(place -> PlaceDto.builder()
-                            .id(place.getId())
-                            .sid(place.getSid())
-                            .name(place.getName())
-                            .category(place.getCategory())
-                            .basicAddress(place.getBasicAddress())
-                            .description(place.getDescription())
-                            .latitude(place.getLatitude())
-                            .longitude(place.getLongitude())
-                            .isUsed(place.isUsed())
-                            .url(place.getUrl())
-                            .imageUrl(place.getImageUrl())
-                            .build())
-                    .collect(Collectors.toList());
-            return CompletableFuture.completedFuture(placeDtoList);
+
+            return CompletableFuture.completedFuture(savedPlaces);
         } catch (Exception e) {
             System.err.println("❌ DB 저장 중 오류 발생: " + e.getMessage());
             e.printStackTrace();

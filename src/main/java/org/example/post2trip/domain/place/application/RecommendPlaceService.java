@@ -60,7 +60,7 @@ public class RecommendPlaceService {
 
         // 3️⃣ AI 서버에 요청하여 응답 받기
         List<AIResponseDto> aiResponses = aiService.sendRequestToAIServer(aiRequest);
-        /*if(aiResponses.isEmpty()) {
+       /* if(aiResponses.isEmpty()) {
             List<RecommendPlace> recommendPlaces = recommendPlaceRepository.findAll();
             return CompletableFuture.completedFuture(RecommendPlaceResponseDto.builder()
                     .places(recommendPlaces.stream()
