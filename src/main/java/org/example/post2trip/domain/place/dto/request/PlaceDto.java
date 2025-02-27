@@ -14,5 +14,6 @@ public class PlaceDto {
     private String description;
     private String latitude;
     private String longitude;
+    private String category;
     private String basicAddress;
 }

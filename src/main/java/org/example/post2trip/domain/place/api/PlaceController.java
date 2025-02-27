@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.post2trip.domain.place.application.PlaceService;
 import org.example.post2trip.domain.place.domain.Place;
 import org.example.post2trip.domain.place.dto.request.IdListRequestDto;
+import org.example.post2trip.domain.place.dto.request.PlaceDto;
 import org.example.post2trip.domain.place.dto.response.PlaceReponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +38,7 @@ public class PlaceController {
 
     // 장소 등록
     @PostMapping("")
-    public ResponseEntity<Place> createPlace(@RequestBody PlaceReponseDto place) {
+    public ResponseEntity<Place> createPlace(@RequestBody PlaceDto place) {
         placeService.createPlace(place);
         return ResponseEntity.ok().build();
     }
@@ -61,5 +62,8 @@ public class PlaceController {
         placeService.deletePlace(id);
         return ResponseEntity.noContent().build();
     }
+
+
+
 
 }
