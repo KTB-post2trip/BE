@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.example.post2trip.domain.place.application.AIService;
 import org.example.post2trip.domain.place.application.RecommendPlaceService;
+import org.example.post2trip.domain.place.dao.RecommendPlaceRepository;
 import org.example.post2trip.domain.place.domain.RecommendPlace;
 import org.example.post2trip.domain.place.dto.response.RecommendPlaceResponseDto;
 import org.example.post2trip.global.common.ResponseModel;
@@ -24,6 +25,8 @@ public class GetPlaceController {
     private final AIService aiService;
     private final RecommendPlaceService recommendPlaceService;
 
+    private final RecommendPlaceRepository recommendPlaceRepository;
+
   /*  @GetMapping("")
     public CompletableFuture<ResponseModel<?>> getPlace(@RequestParam(required = false) String url) {
         return aiService.getBusinessName(url)
@@ -33,20 +36,21 @@ public class GetPlaceController {
 
 
 
-    @GetMapping("")
+    @GetMapping("/place")
     public ResponseEntity<List<RecommendPlace>> getAllRecommendPlaces() {
         return ResponseEntity.ok(recommendPlaceService.getAllRecommendPlaces());
     }
 
     // 🔹 2. 특정 추천 장소 조회 (ID 기준)
-    @GetMapping("/place")
-    public CompletableFuture<ResponseEntity<RecommendPlaceResponseDto>> getPlacesBySId(
+    @GetMapping("")
+    public ResponseEntity<RecommendPlaceResponseDto> getPlacesBySId(
             @RequestParam String sId,
             @RequestParam int days) {
+            return ResponseEntity.ok(recommendPlaceService.convertToResponseDto());
 
-        return recommendPlaceService.getRecommendPlacesBySId(sId, days)
-                .thenApply(ResponseEntity::ok) // ✅ 성공 시 ResponseEntity로 감싸기
-                .exceptionally(ex -> ResponseEntity.internalServerError().build()); // ✅ 실패 시 500 반환
+        //return recommendPlaceService.getRecommendPlacesBySId(sId, days)
+           //     .thenApply(ResponseEntity::ok) // ✅ 성공 시 ResponseEntity로 감싸기
+            //    .exceptionally(ex -> ResponseEntity.internalServerError().build()); // ✅ 실패 시 500 반환
     }
 
 

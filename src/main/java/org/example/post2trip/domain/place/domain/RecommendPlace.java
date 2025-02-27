@@ -24,4 +24,11 @@ public class RecommendPlace {
     private Place place;
 
 
+    public RecommendPlace(int days, int sort, Place place) {
+        this.days = days;
+        this.sort = sort;
+        this.place = place;
+    }
+
+
 }

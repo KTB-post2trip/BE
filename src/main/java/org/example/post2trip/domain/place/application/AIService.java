@@ -188,14 +188,13 @@ public class AIService {
 
             // ✅ JSON 응답 출력
             String jsonResponse = responseEntity.getBody();
+            System.out.println("🔹 AI 서버 응답: " + jsonResponse);
 
             // 🔹 JSON 문자열을 AIResponseDto 리스트로 변환하여 반환
             return objectMapper.readValue(jsonResponse,
                     objectMapper.getTypeFactory().constructCollectionType(List.class, AIResponseDto.class));
         } catch (Exception e) {
-            System.err.println("❌ AI 서버 요청 실패! 예외 발생: " + e.getMessage());
-            e.printStackTrace();
-            return List.of(); // 🔹 오류 발생 시 빈 리스트 반환
+           return List.of(); // AI 서버 오류 시 빈 리스트 반환
         }
     }
 

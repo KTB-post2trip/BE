@@ -18,4 +18,11 @@ public class AIResponseDto {
 
     @JsonProperty("summary")
     private String summary;
+
+    public AIResponseDto(int day, int sort, String placeName, String summary) {
+        this.day = day;
+        this.sort = sort;
+        this.placeName = placeName;
+        this.summary = summary;
+    }
 }

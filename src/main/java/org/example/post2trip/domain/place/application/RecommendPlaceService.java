@@ -9,6 +9,7 @@ import org.example.post2trip.domain.place.dto.request.AI.AIRequestDto;
 import org.example.post2trip.domain.place.dto.request.AI.AIPlaceDto;
 import org.example.post2trip.domain.place.dto.response.AI.AIResponseDto;
 import org.example.post2trip.domain.place.dto.response.PlaceResponseDto;
+import org.example.post2trip.domain.place.dto.response.ProcessUrlResponseDto;
 import org.example.post2trip.domain.place.dto.response.RecommendPlaceDto;
 import org.example.post2trip.domain.place.dto.response.RecommendPlaceResponseDto;
 import org.springframework.scheduling.annotation.Async;
@@ -34,6 +35,45 @@ public class RecommendPlaceService {
     // 🔹 1. 모든 추천 장소 조회
     public List<RecommendPlace> getAllRecommendPlaces() {
         return recommendPlaceRepository.findAll();
+    }
+
+    public RecommendPlaceDto convertToDto(RecommendPlace recommendPlace) {
+        if (recommendPlace == null || recommendPlace.getPlace() == null) {
+            return null;
+        }
+
+        Place place = recommendPlace.getPlace();
+        PlaceResponseDto placeResponseDto = new PlaceResponseDto(
+                place.getName(),
+                place.getBasicAddress(),
+                place.getDescription(),
+                place.getLatitude(),
+                place.getLongitude(),
+                place.isUsed(),
+                place.getImageUrl(),
+                place.getUrl()
+        );
+
+        return new RecommendPlaceDto(
+                recommendPlace.getDays(),
+                recommendPlace.getSort(),
+                placeResponseDto
+        );
+    }
+    public RecommendPlaceResponseDto convertToResponseDto() {
+        List<RecommendPlace> recommendPlaces = recommendPlaceRepository.findAll();
+        List<RecommendPlaceDto> recommendPlaceDtos = recommendPlaces.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+
+        return new RecommendPlaceResponseDto(recommendPlaceDtos);
+    }
+
+    public List<RecommendPlaceDto> convertToDtoList() {
+        List<RecommendPlace> recommendPlaces = recommendPlaceRepository.findAll();
+        return recommendPlaces.stream()
+                .map(this::convertToDto)  // 🔹 오류 해결: this를 통해 현재 클래스의 메서드 호출
+                .collect(Collectors.toList());
     }
 
     // 🔹 2. 특정 추천 장소 조회 (ID 기준)
@@ -150,6 +190,22 @@ public class RecommendPlaceService {
         recommendPlaceRepository.deleteById(id);
     }
 
+//this.day = day;
+//        this.sort = sort;
+//        this.placeName = placeName;
+//        this.summary = summary;
+    private List<AIResponseDto> getMockData() {
+        return List.of(
+
+                new AIResponseDto(1,1, "비비플로", "카페이면서 소품샵, 자체 제작 상품과 아카이빙 브랜드 상품 판매, 인스타그램 택배 주문 가능"),
+                new AIResponseDto(1, 2, "이츠모라멘", "라멘 맛집"),
+                new AIResponseDto(1, 3, "형제막국수", "막국수와 수육 세트 메뉴가 맛있는 곳, 비빔막국수 추천"),
+                new AIResponseDto(2, 1, "여고시절 카레 떡볶이", "카레향이 나는 길거리 떡볶이집 느낌, 떡과 어묵 개수 선택 가능, 단맛보다 짠맛이 강함"),
+                new AIResponseDto(2, 2, "강문해변", "주차장에서 해변으로 바로 연결되어 피크닉 하기 좋은 곳"),
+                new AIResponseDto(2, 3, "슬로우슬로우담담", "일본 감성의 수제 도자기 소품 판매, 마음의 조각들 추천")
+
+        );
+    }
 
 
 }
