@@ -38,8 +38,8 @@ public class KakakoSearchService {
     public KakaoImageDto searchByKeyword(String query) {
 
         String url = baseUrl
-                + "?query=" + query +" 사진"
-                + "&size=1"
+                + "?query=" + query
+                + "&size=5"
                 + "&sort=accuracy";
         return callKakaoApi(url, KakaoImageDto.class);
     }

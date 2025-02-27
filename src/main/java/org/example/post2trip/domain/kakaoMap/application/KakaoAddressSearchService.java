@@ -100,6 +100,7 @@ public class KakaoAddressSearchService {
                 + location
                 + "&page=" + page
                 + "&size=" + size
+                + "&sort=accuracy"
                 + "&analyze_type=similar";
 
         // 1차 검색 실행
@@ -173,6 +174,7 @@ public class KakaoAddressSearchService {
                 + "?query=" + query
                 + location
                 + "&page=" + 1
+                + "&sort=accuracy"
                 + "&size=" + 1
                 + "&analyze_type=similar";
 

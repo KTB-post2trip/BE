@@ -5,18 +5,20 @@ import org.example.post2trip.domain.place.dao.PlaceRepository;
 import org.example.post2trip.domain.place.dao.RecommendPlaceRepository;
 import org.example.post2trip.domain.place.domain.Place;
 import org.example.post2trip.domain.place.domain.RecommendPlace;
+import org.example.post2trip.domain.place.dto.request.AI.AIRequestDto;
+import org.example.post2trip.domain.place.dto.request.AI.AIPlaceDto;
+import org.example.post2trip.domain.place.dto.response.AI.AIResponseDto;
 import org.example.post2trip.domain.place.dto.response.PlaceReponseDto;
 import org.example.post2trip.domain.place.dto.response.RecommendPlaceDto;
 import org.example.post2trip.domain.place.dto.response.RecommendPlaceResponseDto;
-import org.example.post2trip.global.common.ResponseModel;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -24,11 +26,11 @@ import java.util.stream.Collectors;
 @Transactional
 @AllArgsConstructor
 public class RecommendPlaceService {
-
+    private final RestTemplate restTemplate;
     private final RecommendPlaceRepository recommendPlaceRepository;
     private final PlaceRepository placeRepository;
 
-
+    private final AIService aiService;
 
     // 🔹 1. 모든 추천 장소 조회
     public List<RecommendPlace> getAllRecommendPlaces() {
@@ -40,36 +42,65 @@ public class RecommendPlaceService {
     public CompletableFuture<RecommendPlaceResponseDto> getRecommendPlacesBySId(Long sId, int days) {
         // 1️⃣ sId를 사용하여 Place 리스트 조회
         List<Place> places = placeRepository.findBySidAndIsUsed(sId, true);
+        System.out.println("🔹 조회된 places: " + places.stream().map(Place::getName).collect(Collectors.toList()));
 
-        // 2️⃣ 조회된 Place 리스트에서 각각의 RecommendPlace 가져오기 → DTO로 변환
-        List<RecommendPlaceDto> recommendPlaces = places.stream()
-                .map(place -> recommendPlaceRepository.findByPlace(place))
-                .filter(Optional::isPresent) // ✅ 존재하는 RecommendPlace만 필터링
-                .map(Optional::get)
-                .map(rp -> RecommendPlaceDto.builder()
-                        .days(rp.getDays())
-                        .sort(rp.getSort())
-                        .place(PlaceReponseDto.builder()
-                                .name(rp.getPlace().getName()) // ✅ 필드명 변경
-                                .basicAddress(rp.getPlace().getBasicAddress())
-                                .description(rp.getPlace().getDescription())
-                                .latitude(rp.getPlace().getLatitude())
-                                .longitude(rp.getPlace().getLongitude())
-                                .isUsed(rp.getPlace().isUsed())
-                                .imageUrl(rp.getPlace().getImageUrl())
-                                .url(rp.getPlace().getUrl()) // ✅ 추가된 필드
+        // 2️⃣ AI 서버 요청 데이터 생성
+        AIRequestDto aiRequest = AIRequestDto.builder()
+                .days(days)
+                .places(places.stream()
+                        .map(p -> AIPlaceDto.builder()
+                                .id(p.getId())
+                                .category(p.getCategory())
+                                .place_name(p.getName())
+                                .summary(p.getDescription())
+                                .latitude(Double.parseDouble(p.getLatitude()))
+                                .longitude(Double.parseDouble(p.getLongitude()))
                                 .build())
-                        .build())
+                        .collect(Collectors.toList()))
+                .build();
+
+        // 3️⃣ AI 서버에 요청하여 응답 받기
+        List<AIResponseDto> aiResponses = aiService.sendRequestToAIServer(aiRequest);
+        System.out.println("🔹 AI 서버 응답: " + aiResponses);
+
+        // 4️⃣ AI 응답을 `RecommendPlaceDto`로 변환 (place_name을 기준으로 매칭)
+        List<RecommendPlaceDto> recommendPlaces = places.stream()
+                .map(place -> {
+                    // AI 응답에서 해당 `place_name`과 매칭되는 데이터 찾기
+                    AIResponseDto aiResponse = aiResponses.stream()
+                            .filter(ai -> ai.getPlaceName().equals(place.getName()))
+                            .findFirst()
+                            .orElse(null);
+
+                    // AI 응답이 없는 경우 기본값 설정
+                    int day = (aiResponse != null) ? aiResponse.getDay() : days;
+                    int sort = (aiResponse != null) ? aiResponse.getSort() : 99; // 기본 sort 값 (가장 마지막에 정렬됨)
+
+                    return RecommendPlaceDto.builder()
+                            .days(day)
+                            .sort(sort)
+                            .place(PlaceReponseDto.builder()
+                                    .name(place.getName())
+                                    .basicAddress(place.getBasicAddress())
+                                    .description(place.getDescription())
+                                    .latitude(place.getLatitude())
+                                    .longitude(place.getLongitude())
+                                    .isUsed(place.isUsed())
+                                    .imageUrl(place.getImageUrl())
+                                    .url(place.getUrl())
+                                    .build())
+                            .build();
+                })
                 .sorted(Comparator.comparing(RecommendPlaceDto::getDays) // ✅ 1순위: days 오름차순
                         .thenComparing(RecommendPlaceDto::getSort)) // ✅ 2순위: sort 오름차순
                 .collect(Collectors.toList());
 
-
-        // 3️⃣ 최종 DTO 반환
+        // 5️⃣ 최종 DTO 반환
         return CompletableFuture.completedFuture(RecommendPlaceResponseDto.builder()
                 .places(recommendPlaces)
                 .build());
     }
+
 
 
 
@@ -102,4 +133,7 @@ public class RecommendPlaceService {
     public void deleteRecommendPlace(Long id) {
         recommendPlaceRepository.deleteById(id);
     }
+
+
+
 }
