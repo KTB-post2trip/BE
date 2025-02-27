@@ -1,5 +1,7 @@
 package org.example.post2trip.domain.place.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.JoinColumn;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -8,6 +10,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class PlaceReponseDto {
+    @JsonProperty("place_name")
     private String name;
 
     private String basicAddress;
@@ -20,4 +23,5 @@ public class PlaceReponseDto {
     private boolean isUsed;
 
     private String imageUrl;
+    private String url;
 }
