@@ -80,7 +80,7 @@ public class AIService {
 
         // ✅ AI 서버 응답이 없으면 테스트 데이터 삽입
         if (responseList.isEmpty()) {
-            responseList = getMockData();
+           responseList = getMockData();
         }
 
         // 🔹 placeName에 따른 x, y 값 적용

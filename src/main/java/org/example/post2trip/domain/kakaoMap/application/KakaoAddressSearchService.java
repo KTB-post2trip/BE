@@ -57,21 +57,6 @@ public class KakaoAddressSearchService {
         return callKakaoApi(url, KakaoApiResponseDto.class);
     }
 
-    public KakaoAddressToCode searchAddressXY(String query, int page, int size) {
-        //String encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8);
-        {
-            String location = "";
-
-            String url = baseUrl
-                    + "/search/keyword.json"
-                    + "?query=" + query
-                    + location
-                    + "&page=" + page
-                    + "&size=" + size
-                    + "&analyze_type=similar";
-            return callKakaoApi(url, KakaoAddressToCode.class);
-        }
-    }
 
     public KakaoApiResponseDto coordToRegionCode(double x, double y) {
         String url = baseUrl
@@ -100,7 +85,7 @@ public class KakaoAddressSearchService {
                 + location
                 + "&page=" + page
                 + "&size=" + size
-                + "&sort=accuracy"
+             //   + "&sort=accuracy"
                 + "&analyze_type=similar";
 
         // 1차 검색 실행
@@ -129,30 +114,6 @@ public class KakaoAddressSearchService {
         return response;
     }
 
-    public KakaoKeywordResponseDto searchByKeyword(String query, int page, int size) {
-
-        String url = baseUrl
-                + "/search/keyword.json"
-                + "?query=" + query
-                + "&page=" + page
-                + "&size=" + size
-                + "&analyze_type=similar";
-        return callKakaoApi(url, KakaoKeywordResponseDto.class);
-    }
-
-    public KakaoKeywordResponseDto searchByCategory(String categoryGroupCode, double x, double y, int radius, int page,
-                                                    int size) {
-        String url = baseUrl
-                + "/search/category.json"
-                + "?category_group_code=" + categoryGroupCode
-                + "&x=" + x
-                + "&y=" + y
-                + "&radius=" + radius
-                + "&page=" + page
-                + "&size=" + size;
-
-        return callKakaoApi(url, KakaoKeywordResponseDto.class);
-    }
 
     public KakaoTransCoordResponseDto transCoord(double x, double y, String inputCoord, String outputCoord) {
         String url = baseUrl
@@ -174,7 +135,7 @@ public class KakaoAddressSearchService {
                 + "?query=" + query
                 + location
                 + "&page=" + 1
-                + "&sort=accuracy"
+              //  + "&sort=accuracy"
                 + "&size=" + 1
                 + "&analyze_type=similar";
 
@@ -195,7 +156,15 @@ public class KakaoAddressSearchService {
 
         // 🔹 이미지 검색 수행
         KakaoImageDto image = kakaoSearchService.searchByKeyword(response.getDocuments().get(0).getPlaceName());
-        String imageUrl = (image.getDocuments().isEmpty()) ? "" : image.getDocuments().get(0).getImageUrl();
+
+        String imageUrl = image.getDocuments().stream()
+                .map(doc -> doc.getImageUrl())  // 🔹 KakaoImageDto의 문서에서 `getImageUrl()` 추출
+                .filter(imgUrl -> imgUrl != null && !imgUrl.contains("postfiles")) // 🔹 "postfiles"가 포함된 이미지 제외
+                .findFirst() // 🔹 첫 번째 적절한 이미지 찾기
+                .orElse(""); // 🔹 없다면 빈 문자열 반환
+
+
+
 
         // 🔹 검색 결과 반환
         return PlaceReponseDto.builder()
@@ -210,6 +179,7 @@ public class KakaoAddressSearchService {
     }
 
 
+    // 🔹 AI 서버 응답을 기반으로 Place 객체 생성
 
     public Place searchByKeywords(double x, double y, int radius, Long sid, ProcessUrlResponseDto dto) {
         String location = (x != -9999) ? "&x=" + x + "&y=" + y + "&radius=" + radius : "";
@@ -239,7 +209,11 @@ public class KakaoAddressSearchService {
 
         // 🔹 이미지 검색 수행
         KakaoImageDto image = kakaoSearchService.searchByKeyword(response.getDocuments().get(0).getPlaceName());
-        String imageUrl = (image.getDocuments().isEmpty()) ? "" : image.getDocuments().get(0).getImageUrl();
+        String imageUrl = image.getDocuments().stream()
+                .map(doc -> doc.getImageUrl())  // 🔹 KakaoImageDto의 문서에서 `getImageUrl()` 추출
+                .filter(imgUrl -> imgUrl != null && !imgUrl.contains("postfiles")) // 🔹 "postfiles"가 포함된 이미지 제외
+                .findFirst() // 🔹 첫 번째 적절한 이미지 찾기
+                .orElse(""); // 🔹 없다면 빈 문자열 반환
 
         // 🔹 검색 결과 반환
         return Place.builder()
