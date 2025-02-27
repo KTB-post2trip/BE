@@ -17,7 +17,12 @@ public class Place {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "s_id")
+    private String sId;
+
     private String name;
+
+    private String category;
 
     private String basicAddress;
 
@@ -29,6 +34,8 @@ public class Place {
     private boolean isUsed;
 
     private String imageUrl;
+
+
 
     public Place() {
     }
