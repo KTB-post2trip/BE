@@ -8,8 +8,6 @@ import org.example.post2trip.domain.place.application.PlaceService;
 import org.example.post2trip.domain.place.domain.Place;
 import org.example.post2trip.domain.place.dto.request.IdListRequestDto;
 import org.example.post2trip.domain.place.dto.request.PlaceDto;
-import org.example.post2trip.domain.place.dto.response.PlaceReponseDto;
-import org.example.post2trip.domain.place.dto.response.ProcessUrlResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,7 +43,7 @@ public class PlaceController {
     }
 
     @GetMapping("/sid/{sid}")
-    public ResponseEntity<List<Place>> getPlaceBysId(@PathVariable Long sid) {
+    public ResponseEntity<List<Place>> getPlaceBysId(@PathVariable String sid) {
         return ResponseEntity.ok(placeService.getPlaceBysId(sid));
 
     }
@@ -80,7 +78,7 @@ public class PlaceController {
     }
 
     @GetMapping("")
-    public CompletableFuture<ResponseEntity<List<Place>>>processUrl(
+    public CompletableFuture<ResponseEntity<List<org.example.post2trip.domain.place.dto.response.AI.PlaceDto>>>processUrl(
             @RequestParam String url,
             @RequestParam(defaultValue = "강원") String placeName) {
         return processUrlService.processUrlAsync(url,placeName)

@@ -10,12 +10,15 @@ import org.example.post2trip.domain.place.domain.Place;
 import org.example.post2trip.domain.place.dto.request.AI.AIRequestDto;
 import org.example.post2trip.domain.place.dto.request.ProcessUrlRequestDto;
 import org.example.post2trip.domain.place.dto.response.AI.AIResponseDto;
+import org.example.post2trip.domain.place.dto.response.AI.PlaceDto;
+import org.example.post2trip.domain.place.dto.response.PlaceResponseDto;
 import org.example.post2trip.domain.place.dto.response.ProcessUrlResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
@@ -90,11 +93,12 @@ public class AIService {
         return responseList;
     }
 
-
-
-
+    private String generateUniqueSid() {
+        return UUID.randomUUID().toString(); // ✅ UUID 문자열 반환
+    }
     @Async
-    public CompletableFuture<List<Place>> processUrlAsync(String url, String placeName) {
+    @Transactional
+    public CompletableFuture<List<PlaceDto>> processUrlAsync(String url, String placeName) {
         // AI 서버 엔드포인트
         List<ProcessUrlResponseDto> responseList;
 
@@ -126,9 +130,9 @@ public class AIService {
         }
 
         // ✅ AI 서버 응답이 없으면 테스트 데이터 삽입
-        if (responseList.isEmpty()) {
-           responseList = getMockData();
-        }
+      //  if (responseList.isEmpty()) {
+      //     responseList = getMockData();
+      //  }
 
         // 🔹 placeName에 따른 x, y 값 적용
         double[] coordinates = PLACE_COORDINATES.getOrDefault(placeName, PLACE_COORDINATES.get("기본값"));
@@ -136,14 +140,10 @@ public class AIService {
         double y = coordinates[1];
 
         // 🔹 실행할 때마다 고유한 `sid` 생성
-        Long sid = generateUniqueSid();
+        String sid = generateUniqueSid();
 
         // 🔹 `sid`가 이미 존재하는지 확인
-        boolean exists = placeRepository.existsBySid(sid);
-        if (exists) {
-            List<Place> existingPlaces = placeRepository.findBySid(sid);
-            return CompletableFuture.completedFuture(existingPlaces);
-        }
+
 
         List<Place> placeList = responseList.stream()
                 .map(dto -> kakaoAddressSearchService.searchByKeywords(x, y, 20000, sid, dto, placeName))
@@ -151,17 +151,45 @@ public class AIService {
                 .collect(Collectors.toList());
 
 
-        // 🔹 Place 리스트를 한꺼번에 저장
-        List<Place> savedPlaces = placeRepository.saveAll(placeList);
+        // 🔹 저장할 데이터가 있는지 확인
+        if (placeList.isEmpty()) {
+            System.out.println("❌ 저장할 place가 없습니다.");
+            return CompletableFuture.completedFuture(List.of());
+        }
+        // 🔹 저장할 데이터 확인
+        placeList.forEach(place -> System.out.println("💾 저장 대상 Place: " + place.getName()+" "+place.getSid()));
 
-        // 🔹 저장된 Place 리스트 반환
-        return CompletableFuture.completedFuture(savedPlaces);
+        try {
+            List<Place> savedPlaces = placeRepository.saveAll(placeList);
+            placeRepository.flush(); // 🔹 강제 반영
+
+
+            List<PlaceDto> placeDtoList = savedPlaces.stream()
+                    .map(place -> PlaceDto.builder()
+                            .id(place.getId())
+                            .sid(place.getSid())
+                            .name(place.getName())
+                            .category(place.getCategory())
+                            .basicAddress(place.getBasicAddress())
+                            .description(place.getDescription())
+                            .latitude(place.getLatitude())
+                            .longitude(place.getLongitude())
+                            .isUsed(place.isUsed())
+                            .url(place.getUrl())
+                            .imageUrl(place.getImageUrl())
+                            .build())
+                    .collect(Collectors.toList());
+            return CompletableFuture.completedFuture(placeDtoList);
+        } catch (Exception e) {
+            System.err.println("❌ DB 저장 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+            return CompletableFuture.completedFuture(List.of());
+        }
+
     }
 
     // 🔹 UUID 기반 고유한 Long 타입 ID 생성
-    private Long generateUniqueSid() {
-        return UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE;
-    }
+
 
 
     // ✅ Mock 데이터 제공 메서드
@@ -182,7 +210,6 @@ public class AIService {
 
     public List<AIResponseDto> sendRequestToAIServer(AIRequestDto aiRequest) {
         String fullUrl = aiServerUrl + "/api/recommend";
-        System.out.println("🔹 AI 서버로 요청 보내기 (POST): " + fullUrl);
 
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -190,7 +217,6 @@ public class AIService {
 
             // ✅ AIRequestDto 객체를 JSON 문자열로 변환하여 출력
             String jsonRequest = objectMapper.writeValueAsString(aiRequest);
-            System.out.println("🔹 요청 데이터 (JSON): " + jsonRequest);
 
             HttpEntity<String> requestEntity = new HttpEntity<>(jsonRequest, headers);
 
@@ -201,7 +227,6 @@ public class AIService {
 
             // ✅ JSON 응답 출력
             String jsonResponse = responseEntity.getBody();
-            System.out.println("🔹 AI 서버 응답 (JSON): " + jsonResponse);
 
             // 🔹 JSON 문자열을 AIResponseDto 리스트로 변환하여 반환
             return objectMapper.readValue(jsonResponse,
@@ -212,5 +237,7 @@ public class AIService {
             return List.of(); // 🔹 오류 발생 시 빈 리스트 반환
         }
     }
+
+
 }
 

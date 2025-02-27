@@ -8,11 +8,9 @@ import org.example.post2trip.domain.place.domain.RecommendPlace;
 import org.example.post2trip.domain.place.dto.request.AI.AIRequestDto;
 import org.example.post2trip.domain.place.dto.request.AI.AIPlaceDto;
 import org.example.post2trip.domain.place.dto.response.AI.AIResponseDto;
-import org.example.post2trip.domain.place.dto.response.PlaceReponseDto;
+import org.example.post2trip.domain.place.dto.response.PlaceResponseDto;
 import org.example.post2trip.domain.place.dto.response.RecommendPlaceDto;
 import org.example.post2trip.domain.place.dto.response.RecommendPlaceResponseDto;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,9 +38,9 @@ public class RecommendPlaceService {
 
     // 🔹 2. 특정 추천 장소 조회 (ID 기준)
     @Async
-    public CompletableFuture<RecommendPlaceResponseDto> getRecommendPlacesBySId(Long sId, int days) {
+    public CompletableFuture<RecommendPlaceResponseDto> getRecommendPlacesBySId(String sId, int days) {
         // 1️⃣ sId를 사용하여 Place 리스트 조회
-        List<Place> places = placeRepository.findBySidAndIsUsed(sId, true);
+        List<Place> places = placeRepository.findBySidAndIsUsed(sId+"", true);
         System.out.println("🔹 조회된 places: " + places.stream().map(Place::getName).collect(Collectors.toList()));
 
         // 2️⃣ AI 서버 요청 데이터 생성
@@ -61,7 +60,7 @@ public class RecommendPlaceService {
 
         // 3️⃣ AI 서버에 요청하여 응답 받기
         List<AIResponseDto> aiResponses = aiService.sendRequestToAIServer(aiRequest);
-        if(aiResponses.isEmpty()) {
+        /*if(aiResponses.isEmpty()) {
             List<RecommendPlace> recommendPlaces = recommendPlaceRepository.findAll();
             return CompletableFuture.completedFuture(RecommendPlaceResponseDto.builder()
                     .places(recommendPlaces.stream()
@@ -81,27 +80,22 @@ public class RecommendPlaceService {
                                     .build())
                             .collect(Collectors.toList()))
                     .build());
-        }
-
-        System.out.println("🔹 AI 서버 응답: " + aiResponses);
+        }*/
+        Map<String, AIResponseDto> aiResponseMap = aiResponses.stream()
+                .collect(Collectors.toMap(AIResponseDto::getPlaceName, Function.identity()));
 
         // 4️⃣ AI 응답을 `RecommendPlaceDto`로 변환 (place_name을 기준으로 매칭)
         List<RecommendPlaceDto> recommendPlaces = places.stream()
                 .map(place -> {
-                    // AI 응답에서 해당 `place_name`과 매칭되는 데이터 찾기
-                    AIResponseDto aiResponse = aiResponses.stream()
-                            .filter(ai -> ai.getPlaceName().equals(place.getName()))
-                            .findFirst()
-                            .orElse(null);
+                    AIResponseDto aiResponse = aiResponseMap.get(place.getName()); // ✅ O(1) 조회
 
-                    // AI 응답이 없는 경우 기본값 설정
                     int day = (aiResponse != null) ? aiResponse.getDay() : days;
-                    int sort = (aiResponse != null) ? aiResponse.getSort() : 1; // 기본 sort 값 (가장 마지막에 정렬됨)
+                    int sort = (aiResponse != null) ? aiResponse.getSort() : 1;
 
                     return RecommendPlaceDto.builder()
                             .days(day)
                             .sort(sort)
-                            .place(PlaceReponseDto.builder()
+                            .place(PlaceResponseDto.builder()
                                     .name(place.getName())
                                     .basicAddress(place.getBasicAddress())
                                     .description(place.getDescription())
@@ -113,11 +107,11 @@ public class RecommendPlaceService {
                                     .build())
                             .build();
                 })
-                .sorted(Comparator.comparing(RecommendPlaceDto::getDays) // ✅ 1순위: days 오름차순
-                        .thenComparing(RecommendPlaceDto::getSort)) // ✅ 2순위: sort 오름차순
+                .sorted(Comparator.comparing(RecommendPlaceDto::getDays)
+                        .thenComparing(RecommendPlaceDto::getSort))
                 .collect(Collectors.toList());
 
-        // 5️⃣ 최종 DTO 반환
+        // 7️⃣ 최종 결과 반환
         return CompletableFuture.completedFuture(RecommendPlaceResponseDto.builder()
                 .places(recommendPlaces)
                 .build());

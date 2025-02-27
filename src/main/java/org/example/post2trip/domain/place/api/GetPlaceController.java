@@ -41,7 +41,7 @@ public class GetPlaceController {
     // 🔹 2. 특정 추천 장소 조회 (ID 기준)
     @GetMapping("/place")
     public CompletableFuture<ResponseEntity<RecommendPlaceResponseDto>> getPlacesBySId(
-            @RequestParam long sId,
+            @RequestParam String sId,
             @RequestParam int days) {
 
         return recommendPlaceService.getRecommendPlacesBySId(sId, days)

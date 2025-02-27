@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.example.post2trip.domain.place.dao.PlaceRepository;
 import org.example.post2trip.domain.place.domain.Place;
 import org.example.post2trip.domain.place.dto.request.PlaceDto;
-import org.example.post2trip.domain.place.dto.response.PlaceReponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,7 +80,7 @@ public class PlaceService {
         placeRepository.deleteById(id);
     }
 
-    public List<Place> getPlaceBysId(Long sid) {
-        return placeRepository.findBySid(sid);
+    public List<Place> getPlaceBysId(String sid) {
+        return placeRepository.findBySid(sid+"");
     }
 }

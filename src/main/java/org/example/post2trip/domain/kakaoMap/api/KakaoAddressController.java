@@ -5,7 +5,7 @@ import org.example.post2trip.domain.kakaoMap.application.KakaoAddressSearchServi
 import org.example.post2trip.domain.kakaoMap.dto.map.KakaoApiResponseDto;
 import org.example.post2trip.domain.kakaoMap.dto.map.KakaoKeywordResponseDto;
 import org.example.post2trip.domain.kakaoMap.dto.map.KakaoTransCoordResponseDto;
-import org.example.post2trip.domain.place.dto.response.PlaceReponseDto;
+import org.example.post2trip.domain.place.dto.response.PlaceResponseDto;
 import org.example.post2trip.global.common.ResponseModel;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -86,7 +86,7 @@ public class KakaoAddressController {
             @RequestParam(defaultValue = "-9999.0") double y,
             @RequestParam(defaultValue = "20000") int radius
     ) {
-        PlaceReponseDto dto = kakaoAddressSearchService.searchByKeyword(query, x, y, radius);
+        PlaceResponseDto dto = kakaoAddressSearchService.searchByKeyword(query, x, y, radius);
         return ResponseModel.success(dto);
     }
 }

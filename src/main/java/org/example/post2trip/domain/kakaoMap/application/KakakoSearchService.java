@@ -31,7 +31,6 @@ public class KakakoSearchService {
                 entity,
                 responseType
         );
-        System.out.println(url);
         return response.getBody();
     }
 
