@@ -13,6 +13,7 @@ import org.example.post2trip.domain.place.dto.response.AI.AIResponseDto;
 import org.example.post2trip.domain.place.dto.response.AI.PlaceDto;
 import org.example.post2trip.domain.place.dto.response.PlaceResponseDto;
 import org.example.post2trip.domain.place.dto.response.ProcessUrlResponseDto;
+import org.jsoup.select.Evaluator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -99,9 +100,9 @@ public class AIService {
     @Async
     public CompletableFuture<List<Place>> processUrlAsync(String url, String placeName) {
         // AI 서버 엔드포인트
-        List<ProcessUrlResponseDto> responseList;
+        List<ProcessUrlResponseDto> responseList = null;
 
-        try {
+       /* try {
             System.out.println("AI 서버로 요청 보내기: " + aiServerUrl + "/process-url?url=" + url);
 
             // 🔹 AI 서버로 GET 요청 보내기 (쿼리 파라미터 사용)
@@ -111,16 +112,17 @@ public class AIService {
                     null,
                     ProcessUrlResponseDto[].class
             );
+            ProcessUrlResponseDto[]> responseEntity= null;
 
-            // 응답이 null이면 빈 리스트 반환
+                    // 응답이 null이면 빈 리스트 반환
             responseList = (responseEntity.getBody() != null) ?
                     Arrays.asList(responseEntity.getBody()) : List.of();
         } catch (Exception e) {
             responseList = List.of(); // AI 서버 오류 시 빈 리스트 반환
-        }
+        }*/
 
         // ✅ AI 서버 응답이 없으면 테스트 데이터 삽입
-        if (responseList.isEmpty()) {
+        if (responseList== null || responseList.isEmpty()) {
             responseList = getMockData();
         }
 
@@ -164,7 +166,11 @@ public class AIService {
                 new ProcessUrlResponseDto(9, "관광지", "강문해변", "주차장에서 해변으로 바로 연결되어 피크닉 하기 좋은 곳"),
                 new ProcessUrlResponseDto(10, "쇼핑", "슬로우슬로우담담", "일본 감성의 수제 도자기 소품 판매, 마음의 조각들 추천"),
                 new ProcessUrlResponseDto(11, "쇼핑", "르봉마젤", "프랑스 파리 감성의 식기와 소품 판매, 1, 2층은 소품샵, 탐사층은 카페"),
-                new ProcessUrlResponseDto(14, "기타", "히든서프", "서핑 강습, 숙박, 파티 가능, 강릉역에서 픽업 가능")
+                new ProcessUrlResponseDto(14, "기타", "히든서프", "서핑 강습, 숙박, 파티 가능, 강릉역에서 픽업 가능"),
+                // ✅ 추가된 강릉 여행지 3곳
+                new ProcessUrlResponseDto(15, "관광지", "안목해변", "강릉의 대표적인 카페 거리, 바다 전망이 멋진 곳"),
+                new ProcessUrlResponseDto(16, "관광지", "경포대", "강릉을 대표하는 관광 명소, 넓은 백사장과 호수 근처 산책 가능"),
+                new ProcessUrlResponseDto(17, "음식점", "초당순두부마을", "강릉 특산물 초당두부를 맛볼 수 있는 곳")
         );
     }
     private final ObjectMapper objectMapper; // JSON 변환 객체
