@@ -223,7 +223,7 @@ public class KakaoAddressSearchService {
 
         // 🔹 검색 결과 반환
         return Place.builder()
-                .sid(sid+"")
+                .sid(sid)
                 .name(dto.getPlace_name())
                 .category(dto.getCategory())
                 .basicAddress(response.getDocuments().get(0).getAddressName())

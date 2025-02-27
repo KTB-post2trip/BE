@@ -28,7 +28,7 @@ public class Place {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "s_id", nullable = false, length = 50)  // 🔹 String으로 변경
+    @Column(name = "s_id")  // 🔹 String으로 변경
     private String sid;
 
 
@@ -54,15 +54,6 @@ public class Place {
     public Place() {
     }
 
-    // ✅ Getter에서 Long으로 변환하여 반환
-    public Long getSidAsLong() {
-        try {
-            return Long.parseLong(sid);
-        } catch (NumberFormatException e) {
-            return null; // 변환 실패 시 null 반환 (예외 방지)
-        }
-    }
 
-    // ✅ Getter에서 Long으로 변환하여 반환
 
 }

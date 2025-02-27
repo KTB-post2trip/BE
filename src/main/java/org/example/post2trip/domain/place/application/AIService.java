@@ -112,26 +112,17 @@ public class AIService {
                     ProcessUrlResponseDto[].class
             );
 
-            // 🔹 응답 바디 확인 (JSON 데이터 출력)
-            ProcessUrlResponseDto[] responseArray = responseEntity.getBody();
-            if (responseArray != null) {
-                System.out.println("🔹 AI 서버 응답 데이터: " + Arrays.toString(responseArray));
-            } else {
-                System.out.println("❌ AI 서버 응답이 null 입니다.");
-            }
-
             // 응답이 null이면 빈 리스트 반환
             responseList = (responseEntity.getBody() != null) ?
                     Arrays.asList(responseEntity.getBody()) : List.of();
         } catch (Exception e) {
-            System.err.println("❌ AI 서버 요청 실패! 예외 발생: " + e.getMessage());
             responseList = List.of(); // AI 서버 오류 시 빈 리스트 반환
         }
 
         // ✅ AI 서버 응답이 없으면 테스트 데이터 삽입
-         if (responseList.isEmpty()) {
+        if (responseList.isEmpty()) {
             responseList = getMockData();
-          }
+        }
 
         // 🔹 placeName에 따른 x, y 값 적용
         double[] coordinates = PLACE_COORDINATES.getOrDefault(placeName, PLACE_COORDINATES.get("기본값"));
@@ -142,34 +133,21 @@ public class AIService {
         String sid = generateUniqueSid();
 
 
+        System.out.println("🔹 sid: " + sid);
+        // 🔹 응답 리스트를 기반으로 Place 리스트 생성
         List<Place> placeList = responseList.stream()
                 .map(dto -> kakaoAddressSearchService.searchByKeywords(x, y, 20000, sid, dto, placeName))
                 .filter(place -> place.getName() != null && !place.getName().isEmpty()) // 🔹 빈 객체 필터링
                 .collect(Collectors.toList());
 
 
-        // 🔹 저장할 데이터가 있는지 확인
-        if (placeList.isEmpty()) {
-            System.out.println("❌ 저장할 place가 없습니다.");
-            return CompletableFuture.completedFuture(List.of());
-        }
-        // 🔹 저장할 데이터 확인
+        // 🔹 Place 리스트를 한꺼번에 저장
+        List<Place> savedPlaces = placeRepository.saveAll(placeList);
 
-
-        try {
-            List<Place> savedPlaces = placeRepository.saveAll(placeList);
-            placeRepository.flush(); // 🔹 강제 반영
-
-
-
-            return CompletableFuture.completedFuture(savedPlaces);
-        } catch (Exception e) {
-            System.err.println("❌ DB 저장 중 오류 발생: " + e.getMessage());
-            e.printStackTrace();
-            return CompletableFuture.completedFuture(List.of());
-        }
-
+        // 🔹 저장된 Place 리스트 반환
+        return CompletableFuture.completedFuture(savedPlaces);
     }
+
 
     // 🔹 UUID 기반 고유한 Long 타입 ID 생성
 
