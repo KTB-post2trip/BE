@@ -1,14 +1,19 @@
 package org.example.post2trip.domain.place.application;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 
 import org.example.post2trip.domain.kakaoMap.application.KakaoAddressSearchService;
 import org.example.post2trip.domain.place.dao.PlaceRepository;
 import org.example.post2trip.domain.place.domain.Place;
+import org.example.post2trip.domain.place.dto.request.AI.AIRequestDto;
 import org.example.post2trip.domain.place.dto.request.ProcessUrlRequestDto;
+import org.example.post2trip.domain.place.dto.response.AI.AIResponseDto;
 import org.example.post2trip.domain.place.dto.response.ProcessUrlResponseDto;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -36,10 +41,16 @@ public class AIService {
 
     // 🔹 특정 장소명에 따른 좌표 매핑
     private static final Map<String, double[]> PLACE_COORDINATES = Map.of(
-            "강릉", new double[]{37.7948207421998, 128.919175274112},
-            "도쿄 타워 호텔", new double[]{35.66, 139.75},
-            "강원", new double[]{37.7948207421998, 128.919175274112},
-            "기본값", new double[]{-9999.0, -9999.0}
+            "서울", new double[]{37.566826004661, 126.978652258309},
+            "경기", new double[]{37.2749769872425, 127.00892996953},
+            "제주", new double[]{33.4889179032603, 126.498229141199},
+            "부산", new double[]{35.1798200522868, 129.075087492149},
+            "강원", new double[]{37.8853257858209, 127.729829010354},
+            "전남", new double[]{34.8160821478848, 126.462788333376},
+            "경상", new double[]{36.5759962255808, 128.505799255401},
+            "강릉", new double[]{37.7948207421998, 128.919175274112}, // 기존 데이터 유지
+            "도쿄 타워 호텔", new double[]{35.66, 139.75}, // 기존 데이터 유지
+            "기본값", new double[]{-9999.0, -9999.0} // 기본값 처리
     );
 
 
@@ -47,21 +58,22 @@ public class AIService {
     @Async
     public CompletableFuture<List<Place>> processUrlAsync(String url, String placeName) {
         // AI 서버 엔드포인트
-
-
         List<ProcessUrlResponseDto> responseList;
 
         try {
-            // AI 서버로 요청 보내기
-            ProcessUrlResponseDto[] responseArray = restTemplate.postForObject(
-                    aiServerUrl,
-                   url,
+            System.out.println("AI 서버로 요청 보내기: " + aiServerUrl + "/process-url?url=" + url);
+
+            // 🔹 AI 서버로 GET 요청 보내기 (쿼리 파라미터 사용)
+            ResponseEntity<ProcessUrlResponseDto[]> responseEntity = restTemplate.exchange(
+                    aiServerUrl + "/process-url?url=" + url,
+                    HttpMethod.GET,
+                    null,
                     ProcessUrlResponseDto[].class
             );
 
             // 응답이 null이면 빈 리스트 반환
-            responseList = (responseArray != null) ?
-                    Arrays.asList(responseArray) : List.of();
+            responseList = (responseEntity.getBody() != null) ?
+                    Arrays.asList(responseEntity.getBody()) : List.of();
         } catch (Exception e) {
             responseList = List.of(); // AI 서버 오류 시 빈 리스트 반환
         }
@@ -97,6 +109,7 @@ public class AIService {
         // 🔹 저장된 Place 리스트 반환
         return CompletableFuture.completedFuture(savedPlaces);
     }
+
     // 🔹 UUID 기반 고유한 Long 타입 ID 생성
     private Long generateUniqueSid() {
         return UUID.randomUUID().getMostSignificantBits() & Long.MAX_VALUE;
@@ -117,7 +130,39 @@ public class AIService {
                 new ProcessUrlResponseDto(14, "기타", "히든서프", "서핑 강습, 숙박, 파티 가능, 강릉역에서 픽업 가능")
         );
     }
+    private final ObjectMapper objectMapper; // JSON 변환 객체
 
+    public List<AIResponseDto> sendRequestToAIServer(AIRequestDto aiRequest) {
+        String fullUrl = aiServerUrl + "/api/recommend";
+        System.out.println("🔹 AI 서버로 요청 보내기 (POST): " + fullUrl);
 
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
+            // ✅ AIRequestDto 객체를 JSON 문자열로 변환하여 출력
+            String jsonRequest = objectMapper.writeValueAsString(aiRequest);
+            System.out.println("🔹 요청 데이터 (JSON): " + jsonRequest);
+
+            HttpEntity<String> requestEntity = new HttpEntity<>(jsonRequest, headers);
+
+            // 🔹 AI 서버로 요청 보내기
+            ResponseEntity<String> responseEntity = restTemplate.exchange(
+                    fullUrl, HttpMethod.POST, requestEntity, String.class
+            );
+
+            // ✅ JSON 응답 출력
+            String jsonResponse = responseEntity.getBody();
+            System.out.println("🔹 AI 서버 응답 (JSON): " + jsonResponse);
+
+            // 🔹 JSON 문자열을 AIResponseDto 리스트로 변환하여 반환
+            return objectMapper.readValue(jsonResponse,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, AIResponseDto.class));
+        } catch (Exception e) {
+            System.err.println("❌ AI 서버 요청 실패! 예외 발생: " + e.getMessage());
+            e.printStackTrace();
+            return List.of(); // 🔹 오류 발생 시 빈 리스트 반환
+        }
+    }
 }
+
