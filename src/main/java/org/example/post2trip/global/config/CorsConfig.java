@@ -17,11 +17,10 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of("*")); // 🔹 허용할 도메인
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // 🔹 허용할 HTTP 메서드
-        config.setAllowedHeaders(List.of("*")); // 🔹 모든 헤더 허용
-        config.setAllowCredentials(true); // 🔹 인증 정보 포함 허용 (JWT 사용 시 필요)
-
+        config.setAllowedOriginPatterns(List.of("*")); // ✅ allowedOriginPatterns 사용 (모든 도메인 허용 가능)
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true); // ✅ allowCredentials 허용
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
