@@ -61,6 +61,28 @@ public class RecommendPlaceService {
 
         // 3️⃣ AI 서버에 요청하여 응답 받기
         List<AIResponseDto> aiResponses = aiService.sendRequestToAIServer(aiRequest);
+        if(aiResponses.isEmpty()) {
+            List<RecommendPlace> recommendPlaces = recommendPlaceRepository.findAll();
+            return CompletableFuture.completedFuture(RecommendPlaceResponseDto.builder()
+                    .places(recommendPlaces.stream()
+                            .map(recommendPlace -> RecommendPlaceDto.builder()
+                                    .days(recommendPlace.getDays())
+                                    .sort(recommendPlace.getSort())
+                                    .place(PlaceReponseDto.builder()
+                                            .name(recommendPlace.getPlace().getName())
+                                            .basicAddress(recommendPlace.getPlace().getBasicAddress())
+                                            .description(recommendPlace.getPlace().getDescription())
+                                            .latitude(recommendPlace.getPlace().getLatitude())
+                                            .longitude(recommendPlace.getPlace().getLongitude())
+                                            .isUsed(recommendPlace.getPlace().isUsed())
+                                            .imageUrl(recommendPlace.getPlace().getImageUrl())
+                                            .url(recommendPlace.getPlace().getUrl())
+                                            .build())
+                                    .build())
+                            .collect(Collectors.toList()))
+                    .build());
+        }
+
         System.out.println("🔹 AI 서버 응답: " + aiResponses);
 
         // 4️⃣ AI 응답을 `RecommendPlaceDto`로 변환 (place_name을 기준으로 매칭)
@@ -74,7 +96,7 @@ public class RecommendPlaceService {
 
                     // AI 응답이 없는 경우 기본값 설정
                     int day = (aiResponse != null) ? aiResponse.getDay() : days;
-                    int sort = (aiResponse != null) ? aiResponse.getSort() : 99; // 기본 sort 값 (가장 마지막에 정렬됨)
+                    int sort = (aiResponse != null) ? aiResponse.getSort() : 1; // 기본 sort 값 (가장 마지막에 정렬됨)
 
                     return RecommendPlaceDto.builder()
                             .days(day)
