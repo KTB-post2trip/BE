@@ -181,7 +181,7 @@ public class KakaoAddressSearchService {
 
     // 🔹 AI 서버 응답을 기반으로 Place 객체 생성
 
-    public Place searchByKeywords(double x, double y, int radius, Long sid, ProcessUrlResponseDto dto) {
+    public Place searchByKeywords(double x, double y, int radius, Long sid, ProcessUrlResponseDto dto,String placeName) {
         String location = (x != -9999) ? "&x=" + x + "&y=" + y + "&radius=" + radius : "";
 
         String url = baseUrl
@@ -196,7 +196,7 @@ public class KakaoAddressSearchService {
         KakaoKeywordResponseDto response = callKakaoApi(url, KakaoKeywordResponseDto.class);
 
         // 🔹 검색 결과가 없을 경우 빈 객체 반환
-        if (response == null || response.getDocuments().isEmpty()) {
+        if (response == null || response.getDocuments().isEmpty() || !response.getDocuments().get(0).getAddressName().contains(placeName)){
             return Place.builder()
                     .name("")
                     .basicAddress("")
@@ -214,6 +214,14 @@ public class KakaoAddressSearchService {
                 .filter(imgUrl -> imgUrl != null && !imgUrl.contains("postfiles")) // 🔹 "postfiles"가 포함된 이미지 제외
                 .findFirst() // 🔹 첫 번째 적절한 이미지 찾기
                 .orElse(""); // 🔹 없다면 빈 문자열 반환
+        System.out.println(imageUrl);
+
+
+        // 🔹 너무 긴 URL이면 빈 문자열("")로 대체 (MySQL 에러 방지)
+        if (imageUrl.length() > 255) {
+            System.out.println("⚠️ 이미지 URL이 너무 깁니다! 빈 문자열로 대체");
+            imageUrl = "";
+        }
 
         // 🔹 검색 결과 반환
         return Place.builder()

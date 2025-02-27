@@ -53,6 +53,44 @@ public class AIService {
             "기본값", new double[]{-9999.0, -9999.0} // 기본값 처리
     );
 
+    public List<ProcessUrlResponseDto> sendRequestToAIServer(String url) {
+        List<ProcessUrlResponseDto> responseList;
+        String fullUrl = aiServerUrl + "/process-url?url=" + url;
+
+        try {
+            System.out.println("🔹 AI 서버로 요청 보내기: " + fullUrl);
+
+            // 🔹 AI 서버로 GET 요청 보내기 (쿼리 파라미터 사용)
+            ResponseEntity<String> responseEntity = restTemplate.exchange(
+                    fullUrl, HttpMethod.GET, null, String.class
+            );
+
+            // 🔹 응답 상태 코드 출력
+            System.out.println("🔹 AI 서버 응답 코드: " + responseEntity.getStatusCode());
+
+            // 🔹 응답 원본 JSON 출력
+            String jsonResponse = responseEntity.getBody();
+            System.out.println("🔹 AI 서버 응답 원본 (JSON): " + jsonResponse);
+
+            // 🔹 JSON을 ProcessUrlResponseDto[]로 변환
+            ProcessUrlResponseDto[] responseArray = objectMapper.readValue(
+                    jsonResponse, ProcessUrlResponseDto[].class
+            );
+
+            // 🔹 변환된 응답 출력
+            System.out.println("🔹 변환된 응답 데이터: " + Arrays.toString(responseArray));
+
+            responseList = (responseArray != null) ? Arrays.asList(responseArray) : List.of();
+        } catch (Exception e) {
+            System.err.println("❌ AI 서버 요청 실패! 예외 발생: " + e.getMessage());
+            e.printStackTrace();
+            responseList = List.of(); // AI 서버 오류 시 빈 리스트 반환
+        }
+
+        return responseList;
+    }
+
+
 
 
     @Async
@@ -71,10 +109,19 @@ public class AIService {
                     ProcessUrlResponseDto[].class
             );
 
+            // 🔹 응답 바디 확인 (JSON 데이터 출력)
+            ProcessUrlResponseDto[] responseArray = responseEntity.getBody();
+            if (responseArray != null) {
+                System.out.println("🔹 AI 서버 응답 데이터: " + Arrays.toString(responseArray));
+            } else {
+                System.out.println("❌ AI 서버 응답이 null 입니다.");
+            }
+
             // 응답이 null이면 빈 리스트 반환
             responseList = (responseEntity.getBody() != null) ?
                     Arrays.asList(responseEntity.getBody()) : List.of();
         } catch (Exception e) {
+            System.err.println("❌ AI 서버 요청 실패! 예외 발생: " + e.getMessage());
             responseList = List.of(); // AI 서버 오류 시 빈 리스트 반환
         }
 
@@ -98,10 +145,11 @@ public class AIService {
             return CompletableFuture.completedFuture(existingPlaces);
         }
 
-        // 🔹 응답 리스트를 기반으로 Place 리스트 생성
         List<Place> placeList = responseList.stream()
-                .map(dto -> kakaoAddressSearchService.searchByKeywords(x, y, 20000, sid, dto))
+                .map(dto -> kakaoAddressSearchService.searchByKeywords(x, y, 20000, sid, dto, placeName))
+                .filter(place -> place.getName() != null && !place.getName().isEmpty()) // 🔹 빈 객체 필터링
                 .collect(Collectors.toList());
+
 
         // 🔹 Place 리스트를 한꺼번에 저장
         List<Place> savedPlaces = placeRepository.saveAll(placeList);
