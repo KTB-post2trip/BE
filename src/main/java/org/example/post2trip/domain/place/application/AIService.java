@@ -8,27 +8,21 @@ import org.example.post2trip.domain.kakaoMap.application.KakaoAddressSearchServi
 import org.example.post2trip.domain.place.dao.PlaceRepository;
 import org.example.post2trip.domain.place.domain.Place;
 import org.example.post2trip.domain.place.dto.request.AI.AIRequestDto;
-import org.example.post2trip.domain.place.dto.request.ProcessUrlRequestDto;
+
 import org.example.post2trip.domain.place.dto.response.AI.AIResponseDto;
-import org.example.post2trip.domain.place.dto.response.AI.PlaceDto;
-import org.example.post2trip.domain.place.dto.response.PlaceResponseDto;
+;
 import org.example.post2trip.domain.place.dto.response.ProcessUrlResponseDto;
-import org.jsoup.select.Evaluator;
+
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
+
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Mono;
 
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import org.springframework.web.client.RestTemplate;
+
+
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -100,31 +94,41 @@ public class AIService {
     @Async
     public CompletableFuture<List<Place>> processUrlAsync(String url, String placeName) {
         // AI 서버 엔드포인트
-        List<ProcessUrlResponseDto> responseList = null;
+        List<ProcessUrlResponseDto> responseList;
 
-       /* try {
+
+        try {
             System.out.println("AI 서버로 요청 보내기: " + aiServerUrl + "/process-url?url=" + url);
 
             // 🔹 AI 서버로 GET 요청 보내기 (쿼리 파라미터 사용)
-            ResponseEntity<ProcessUrlResponseDto[]> responseEntity = restTemplate.exchange(
+            ResponseEntity<String> responseEntity = restTemplate.exchange(
                     aiServerUrl + "/process-url?url=" + url,
                     HttpMethod.GET,
                     null,
-                    ProcessUrlResponseDto[].class
+                   String.class// ProcessUrlResponseDto[].class
             );
-            ProcessUrlResponseDto[]> responseEntity= null;
+
+            //String sid = generateUniqueSid();
+
+            responseList = objectMapper.readValue(responseEntity.getBody(), new TypeReference<>() {});
+
+
+            // 🔹 응답 상태 코드 출력
+            System.out.println("🔹 AI 서버 응답 코드: " + responseEntity.getStatusCode());
+       /*     System.out.println("body "+responseEntity.getBody().toString());
 
                     // 응답이 null이면 빈 리스트 반환
-            responseList = (responseEntity.getBody() != null) ?
-                    Arrays.asList(responseEntity.getBody()) : List.of();
+            // JSON 문자열을 ProcessUrlResponseDto[] 배열로 변환
+            ProcessUrlResponseDto[] responseArray = objectMapper.readValue(
+                    responseEntity.getBody(), ProcessUrlResponseDto[].class
+            );*/
+
+
         } catch (Exception e) {
             responseList = List.of(); // AI 서버 오류 시 빈 리스트 반환
-        }*/
-
-        // ✅ AI 서버 응답이 없으면 테스트 데이터 삽입
-        if (responseList== null || responseList.isEmpty()) {
-            responseList = getMockData();
         }
+
+
 
         // 🔹 placeName에 따른 x, y 값 적용
         double[] coordinates = PLACE_COORDINATES.getOrDefault(placeName, PLACE_COORDINATES.get("기본값"));
@@ -135,7 +139,7 @@ public class AIService {
         String sid = generateUniqueSid();
 
 
-        System.out.println("🔹 sid: " + sid);
+
         // 🔹 응답 리스트를 기반으로 Place 리스트 생성
         List<Place> placeList = responseList.stream()
                 .map(dto -> kakaoAddressSearchService.searchByKeywords(x, y, 20000, sid, dto, placeName))
@@ -200,10 +204,11 @@ public class AIService {
             return objectMapper.readValue(jsonResponse,
                     objectMapper.getTypeFactory().constructCollectionType(List.class, AIResponseDto.class));
         } catch (Exception e) {
-           return List.of(); // AI 서버 오류 시 빈 리스트 반환
+            return List.of(); // AI 서버 오류 시 빈 리스트 반환
         }
-    }
 
+
+    }
 
 }
 

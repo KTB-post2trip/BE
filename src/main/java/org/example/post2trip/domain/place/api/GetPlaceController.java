@@ -36,21 +36,20 @@ public class GetPlaceController {
 
 
 
-    @GetMapping("/place")
+    @GetMapping("")
     public ResponseEntity<List<RecommendPlace>> getAllRecommendPlaces() {
         return ResponseEntity.ok(recommendPlaceService.getAllRecommendPlaces());
     }
 
     // 🔹 2. 특정 추천 장소 조회 (ID 기준)
-    @GetMapping("")
-    public ResponseEntity<RecommendPlaceResponseDto> getPlacesBySId(
+    @GetMapping("/place")
+    public CompletableFuture<ResponseEntity<RecommendPlaceResponseDto>> getPlacesBySId(
             @RequestParam String sId,
             @RequestParam int days) {
-            return ResponseEntity.ok(recommendPlaceService.convertToResponseDto());
 
-        //return recommendPlaceService.getRecommendPlacesBySId(sId, days)
-           //     .thenApply(ResponseEntity::ok) // ✅ 성공 시 ResponseEntity로 감싸기
-            //    .exceptionally(ex -> ResponseEntity.internalServerError().build()); // ✅ 실패 시 500 반환
+        return recommendPlaceService.getRecommendPlacesBySId(sId, days)
+                .thenApply(ResponseEntity::ok) // ✅ 성공 시 ResponseEntity로 감싸기
+                .exceptionally(ex -> ResponseEntity.internalServerError().build()); // ✅ 실패 시 500 반환
     }
 
 
