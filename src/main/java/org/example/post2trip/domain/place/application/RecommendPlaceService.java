@@ -122,19 +122,26 @@ public class RecommendPlaceService {
                     .build());
         }*/
         Map<String, AIResponseDto> aiResponseMap = aiResponses.stream()
-                .collect(Collectors.toMap(AIResponseDto::getPlaceName, Function.identity()));
+                .collect(Collectors.toMap(
+                        AIResponseDto::getPlaceName, // 키: place_name
+                        Function.identity(),        // 값: AIResponseDto 객체
+                        (existing, replacement) -> existing // 중복 발생 시 기존 값 유지
+                ));
 
+        // 4️⃣ AI 응답을 `RecommendPlaceDto`로 변환 (place_name을 기준으로 매칭)
         // 4️⃣ AI 응답을 `RecommendPlaceDto`로 변환 (place_name을 기준으로 매칭)
         List<RecommendPlaceDto> recommendPlaces = places.stream()
                 .map(place -> {
                     AIResponseDto aiResponse = aiResponseMap.get(place.getName()); // ✅ O(1) 조회
 
-                    int day = (aiResponse != null) ? aiResponse.getDay() : days;
-                    int sort = (aiResponse != null) ? aiResponse.getSort() : 1;
+                    // 🔹 AI 응답이 없는 경우 제외 (null 필터링)
+                    if (aiResponse == null) {
+                        return null;
+                    }
 
                     return RecommendPlaceDto.builder()
-                            .days(day)
-                            .sort(sort)
+                            .days(aiResponse.getDay())  // ✅ AI 응답에서 days 값 가져오기
+                            .sort(aiResponse.getSort()) // ✅ AI 응답에서 sort 값 가져오기
                             .place(PlaceResponseDto.builder()
                                     .name(place.getName())
                                     .basicAddress(place.getBasicAddress())
@@ -147,9 +154,11 @@ public class RecommendPlaceService {
                                     .build())
                             .build();
                 })
+                .filter(Objects::nonNull) // 🔹 AI 응답이 없는 (null) 원소 필터링
                 .sorted(Comparator.comparing(RecommendPlaceDto::getDays)
                         .thenComparing(RecommendPlaceDto::getSort))
                 .collect(Collectors.toList());
+
 
         // 7️⃣ 최종 결과 반환
         return CompletableFuture.completedFuture(RecommendPlaceResponseDto.builder()
