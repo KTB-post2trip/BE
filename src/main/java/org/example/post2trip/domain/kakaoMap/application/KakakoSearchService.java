@@ -31,7 +31,6 @@ public class KakakoSearchService {
                 entity,
                 responseType
         );
-        System.out.println(url);
         return response.getBody();
     }
 
@@ -39,7 +38,7 @@ public class KakakoSearchService {
 
         String url = baseUrl
                 + "?query=" + query +" 사진"
-                + "&size=1"
+                + "&size=5"
                 + "&sort=accuracy";
         return callKakaoApi(url, KakaoImageDto.class);
     }

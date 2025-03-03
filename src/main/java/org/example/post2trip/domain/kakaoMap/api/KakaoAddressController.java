@@ -1,10 +1,11 @@
 package org.example.post2trip.domain.kakaoMap.api;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import org.example.post2trip.domain.kakaoMap.application.KakaoAddressSearchService;
 import org.example.post2trip.domain.kakaoMap.dto.map.KakaoApiResponseDto;
 import org.example.post2trip.domain.kakaoMap.dto.map.KakaoKeywordResponseDto;
 import org.example.post2trip.domain.kakaoMap.dto.map.KakaoTransCoordResponseDto;
-import org.example.post2trip.domain.place.dto.response.PlaceReponseDto;
+import org.example.post2trip.domain.place.dto.response.PlaceResponseDto;
 import org.example.post2trip.global.common.ResponseModel;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "KakaoAddress", description = "카카오 지도 관련 api / 담당자 : 이영학")
 public class KakaoAddressController {
     private final KakaoAddressSearchService kakaoAddressSearchService;
-
+    @Hidden
     @GetMapping("/search/address")
     public ResponseModel<?> searchAddress(
             @RequestParam(required = false) String query,
@@ -32,7 +33,7 @@ public class KakaoAddressController {
         KakaoApiResponseDto kakaoApiResponseDto = kakaoAddressSearchService.searchAddress(query, page, size);
         return ResponseModel.success(kakaoApiResponseDto);
     }
-
+    @Hidden
     @GetMapping("/geo/coord2regioncode")
     public ResponseModel<?> getRegionCode(
             @RequestParam double x,
@@ -41,7 +42,7 @@ public class KakaoAddressController {
         KakaoApiResponseDto kakaoApiResponseDto = kakaoAddressSearchService.coordToRegionCode(x, y);
         return ResponseModel.success(kakaoApiResponseDto);
     }
-
+    @Hidden
     @GetMapping("/geo/coord2address")
     public ResponseModel<?> getAddress(
             @RequestParam double x,
@@ -64,7 +65,7 @@ public class KakaoAddressController {
                 y, radius, page, size);
         return ResponseModel.success(kakaoKeywordResponseDto);
     }
-
+    @Hidden
     @GetMapping("/geo/transcoord")
     public ResponseModel<?> transCoord(
             @RequestParam double x,
@@ -85,7 +86,7 @@ public class KakaoAddressController {
             @RequestParam(defaultValue = "-9999.0") double y,
             @RequestParam(defaultValue = "20000") int radius
     ) {
-        PlaceReponseDto dto = kakaoAddressSearchService.searchByKeyword(query, x, y, radius);
+        PlaceResponseDto dto = kakaoAddressSearchService.searchByKeyword(query, x, y, radius);
         return ResponseModel.success(dto);
     }
 }

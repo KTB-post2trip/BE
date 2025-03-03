@@ -23,6 +23,8 @@ jobs:
       - name: Build and push Docker image
         run: |
           docker buildx build \
+            --cache-from=type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/link2trip:cache \
+            --cache-to=type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/link2trip:cache,mode=max \
             --build-arg DB_URL=${{ secrets.DB_URL }} \
             --build-arg DB_USERNAME=${{ secrets.DB_USERNAME }} \
             --build-arg DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
@@ -46,6 +48,7 @@ jobs:
             export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
             export TAG=${{ github.sha }}
             cd /home/ubuntu/link2trip/BE
-            docker-compose pull app
-            docker-compose up -d app
-            docker image prune -f
+            docker-compose down
+            docker-compose pull
+            docker-compose up -d
+            docker image prune -af

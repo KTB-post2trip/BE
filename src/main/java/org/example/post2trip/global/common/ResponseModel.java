@@ -23,4 +23,20 @@ public class ResponseModel<T> {
     public static <T> ResponseModel<T> success(HttpStatus status, T data) {
         return new ResponseModel<>(status, data);
     }
+    // 🔹 새 메서드 (사용자가 HTTP 상태 코드를 지정 가능)
+    // 🔹 기존 메서드 (BAD_REQUEST 고정)
+    public static <T> ResponseModel<T> error(T data) {
+        return new ResponseModel<>(HttpStatus.BAD_REQUEST, data);
+    }
+
+    // 🔹 새 메서드 (사용자가 HTTP 상태 코드를 지정 가능)
+    public static <T> ResponseModel<T> error(HttpStatus status, T data) {
+        return new ResponseModel<>(status, data);
+    }
+
+
+    // 🔹 data가 필요 없는 경우 (null 대응)
+    public static ResponseModel<Void> error(HttpStatus status) {
+        return new ResponseModel<>(status, null);
+    }
 }

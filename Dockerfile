@@ -1,4 +1,3 @@
-# 🟢 Stage 1: Build Stage
 FROM openjdk:17-jdk-slim AS build
 
 # 필요한 패키지 설치 및 시간대 설정 (레이어 최적화)
